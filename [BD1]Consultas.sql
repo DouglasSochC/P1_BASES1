@@ -87,7 +87,12 @@ rango mayor a 5. Debe mostrar los resultados en orden alfabético tomando
 en cuenta el nombre y apellido del paciente.
 *******************************************************************************************
 *******************************************************************************************/
-
+SELECT paciente.nombre, paciente.apellido, paciente.direccion FROM detalle_evaluacion
+INNER JOIN evaluacion ON evaluacion.id_evaluacion = detalle_evaluacion.id_evaluacion
+INNER JOIN paciente ON paciente.id_paciente = evaluacion.id_paciente
+WHERE detalle_evaluacion.rango_diagnostico > 5
+GROUP BY paciente.nombre, paciente.apellido, paciente.direccion
+ORDER BY paciente.nombre, paciente.apellido ASC;
 /******************************************************************************************
 *******************************************************************************************
 8. Mostrar el nombre, apellido y fecha de nacimiento de todos los empleados de
@@ -96,7 +101,13 @@ por lo menos a 2 pacientes. Mostrar la cantidad de pacientes atendidos por
 el empleado y ordénelos de mayor a menor.
 *******************************************************************************************
 *******************************************************************************************/
-
+SELECT empleado.nombre, empleado.apellido, empleado.fecha_nacimiento, COUNT(evaluacion.id_evaluacion) AS pacientes_atendidos 
+FROM evaluacion
+INNER JOIN empleado ON empleado.id_empleado = evaluacion.id_empleado
+WHERE evaluacion.id_paciente IS NOT NULL AND empleado.genero = 'F' AND empleado.direccion = '1475 Dryden Crossing'
+GROUP BY empleado.nombre, empleado.apellido, empleado.fecha_nacimiento
+HAVING COUNT(evaluacion.id_evaluacion) >= 2
+ORDER BY COUNT(evaluacion.id_evaluacion) ASC;
 /******************************************************************************************
 *******************************************************************************************
 9. Mostrar el porcentaje de pacientes que ha atendido cada empleado a partir
