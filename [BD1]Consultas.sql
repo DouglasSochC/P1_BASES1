@@ -4,7 +4,7 @@
 de pacientes atendidos por cada empleado ordenados de mayor a menor.
 *******************************************************************************************
 *******************************************************************************************/
-SELECT empleado.nombre, empleado.apellido, empleado.telefono, COUNT(evaluacion.id_evaluacion) AS cantidad_pacientes_atendidos
+SELECT empleado.nombre, empleado.apellido, empleado.telefono, COUNT(DISTINCT evaluacion.fecha_evaluacion) AS cantidad_pacientes_atendidos
 FROM evaluacion
 INNER JOIN empleado ON empleado.id_empleado = evaluacion.id_empleado
 GROUP BY empleado.nombre, empleado.apellido, empleado.telefono
@@ -21,7 +21,7 @@ INNER JOIN empleado ON empleado.id_empleado = evaluacion.id_empleado
 INNER JOIN titulo ON titulo.id_titulo = empleado.id_titulo
 WHERE empleado.genero = 'M' AND evaluacion.fecha_evaluacion >= '01/01/2016' AND evaluacion.fecha_evaluacion <= '31/12/2016'
 GROUP BY empleado.nombre, empleado.apellido, empleado.direccion, titulo.nombre
-HAVING COUNT(evaluacion.id_evaluacion) > 3;
+HAVING COUNT(DISTINCT evaluacion.fecha_evaluacion) > 3;
 /******************************************************************************************
 *******************************************************************************************
 3. Mostrar el nombre y apellido de todos los pacientes que se están aplicando el
@@ -34,14 +34,15 @@ INNER JOIN evaluacion ON evaluacion.id_evaluacion = detalle_evaluacion.id_evalua
 INNER JOIN paciente ON paciente.id_paciente = evaluacion.id_paciente
 INNER JOIN sintoma ON sintoma.id_sintoma = evaluacion.id_sintoma
 WHERE sintoma.nombre = 'Dolor de cabeza' AND tratamiento.nombre = 'Tabaco en polvo'
-GROUP BY paciente.nombre, paciente.apellido;
+GROUP BY paciente.nombre, paciente.apellido
+ORDER BY paciente.nombre, paciente.apellido;
 /******************************************************************************************
 *******************************************************************************************
 4. Top 5 de pacientes que más tratamientos se han aplicado del tratamiento “Antidepresivos”. 
 Mostrar nombre, apellido y la cantidad de tratamientos.
 *******************************************************************************************
 *******************************************************************************************/
-SELECT paciente.nombre, paciente.apellido, COUNT(tratamiento.id_tratamiento) AS cantidad_tratamientos 
+SELECT paciente.nombre, paciente.apellido, COUNT(DISTINCT detalle_evaluacion.fecha_tratamiento) AS cantidad_tratamientos 
 FROM detalle_evaluacion
 INNER JOIN tratamiento ON tratamiento.id_tratamiento = detalle_evaluacion.id_tratamiento
 INNER JOIN evaluacion ON evaluacion.id_evaluacion = detalle_evaluacion.id_evaluacion
@@ -49,6 +50,7 @@ INNER JOIN paciente ON paciente.id_paciente = evaluacion.id_paciente
 INNER JOIN sintoma ON sintoma.id_sintoma = evaluacion.id_sintoma
 WHERE tratamiento.nombre = 'Antidepresivos'
 GROUP BY paciente.nombre, paciente.apellido
+ORDER BY cantidad_tratamientos DESC
 FETCH FIRST 5 ROWS ONLY;
 /******************************************************************************************
 *******************************************************************************************
@@ -72,7 +74,7 @@ asignado donde el rango ha sido de 9. Ordene sus resultados de mayor a
 menor en base a la cantidad de síntomas.
 *******************************************************************************************
 *******************************************************************************************/
-SELECT COUNT(evaluacion.id_sintoma) AS cantidad_sintomas, diagnostico.nombre AS diagnositico_asignado
+SELECT COUNT(DISTINCT evaluacion.id_sintoma) AS cantidad_sintomas, diagnostico.nombre AS diagnositico_asignado
 FROM detalle_evaluacion
 INNER JOIN evaluacion ON evaluacion.id_evaluacion = detalle_evaluacion.id_evaluacion
 INNER JOIN diagnostico ON diagnostico.id_diagnostico = detalle_evaluacion.id_diagnostico
@@ -114,7 +116,14 @@ ORDER BY COUNT(evaluacion.id_evaluacion) ASC;
 del año 2017 y mostrarlos de mayor a menor en base al porcentaje calculado.
 *******************************************************************************************
 *******************************************************************************************/
-
+SELECT empleado.nombre, empleado.apellido, (COUNT(DISTINCT id_paciente)*100)/(SELECT SUM(COUNT(DISTINCT id_paciente)) FROM evaluacion
+INNER JOIN empleado ON empleado.id_empleado = evaluacion.id_empleado
+WHERE evaluacion.fecha_evaluacion >= '01/01/2017' AND evaluacion.fecha_evaluacion <= '31/12/2017'
+GROUP BY empleado.nombre, empleado.apellido) AS pacientes_atendidos FROM evaluacion
+INNER JOIN empleado ON empleado.id_empleado = evaluacion.id_empleado
+WHERE evaluacion.fecha_evaluacion >= '01/01/2017' AND evaluacion.fecha_evaluacion <= '31/12/2017'
+GROUP BY empleado.nombre, empleado.apellido
+ORDER BY pacientes_atendidos DESC;
 /******************************************************************************************
 *******************************************************************************************
 10. Mostrar el porcentaje del título de empleado más común de la siguiente
@@ -122,12 +131,21 @@ manera: nombre del título, porcentaje de empleados que tienen ese
 título. Debe ordenar los resultados en base al porcentaje de mayor a menor.
 *******************************************************************************************
 *******************************************************************************************/
-
+SELECT titulo.nombre, (COUNT(empleado.id_empleado)*100/(SELECT SUM(COUNT(empleado.id_empleado)) FROM empleado
+INNER JOIN titulo ON titulo.id_titulo = empleado.id_titulo
+GROUP BY titulo.nombre)) AS porcentaje_empleados FROM empleado
+INNER JOIN titulo ON titulo.id_titulo = empleado.id_titulo
+GROUP BY titulo.nombre
+ORDER BY porcentaje_empleados DESC;
 /******************************************************************************************
 *******************************************************************************************
 11. Mostrar el año y mes (de la fecha de evaluación) junto con el nombre y
-apellido de los pacientes que más tratamientos se han aplicado y los quemenos. 
+apellido de los pacientes que más tratamientos se han aplicado y los que menos. 
 (Todo en una sola consulta). Nota: debe tomar como cantidad
 mínima 1 tratamiento.
 *******************************************************************************************
 *******************************************************************************************/
+SELECT EXTRACT(YEAR FROM fecha_evaluacion) AS anio, EXTRACT(MONTH FROM fecha_evaluacion) AS mes, paciente.nombre, paciente.apellido 
+FROM detalle_evaluacion
+INNER JOIN evaluacion ON evaluacion.id_evaluacion = detalle_evaluacion.id_evaluacion
+INNER JOIN paciente ON paciente.id_paciente = evaluacion.id_paciente;
