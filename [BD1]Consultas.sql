@@ -15,7 +15,7 @@ ORDER BY cantidad_pacientes_atendidos DESC;
 masculino que atendieron a más de 3 pacientes en el año 2016.
 *******************************************************************************************
 *******************************************************************************************/
-SELECT empleado.nombre, empleado.apellido, empleado.direccion, titulo.nombre AS titulo
+SELECT empleado.nombre, empleado.apellido, empleado.direccion, titulo.nombre, COUNT(DISTINCT evaluacion.fecha_evaluacion) AS titulo
 FROM evaluacion
 INNER JOIN empleado ON empleado.id_empleado = evaluacion.id_empleado
 INNER JOIN titulo ON titulo.id_titulo = empleado.id_titulo
@@ -103,7 +103,7 @@ por lo menos a 2 pacientes. Mostrar la cantidad de pacientes atendidos por
 el empleado y ordénelos de mayor a menor.
 *******************************************************************************************
 *******************************************************************************************/
-SELECT empleado.nombre, empleado.apellido, empleado.fecha_nacimiento, COUNT(evaluacion.id_evaluacion) AS pacientes_atendidos 
+SELECT empleado.nombre, empleado.apellido, empleado.fecha_nacimiento, COUNT(DISTINCT evaluacion.id_paciente) AS pacientes_atendidos 
 FROM evaluacion
 INNER JOIN empleado ON empleado.id_empleado = evaluacion.id_empleado
 WHERE evaluacion.id_paciente IS NOT NULL AND empleado.genero = 'F' AND empleado.direccion = '1475 Dryden Crossing'
@@ -114,6 +114,10 @@ ORDER BY COUNT(evaluacion.id_evaluacion) ASC;
 *******************************************************************************************
 9. Mostrar el porcentaje de pacientes que ha atendido cada empleado a partir
 del año 2017 y mostrarlos de mayor a menor en base al porcentaje calculado.
+REVISAR - UTILIZAR AVG
+REVISAR - UTILIZAR AVG
+REVISAR - UTILIZAR AVG
+REVISAR - UTILIZAR AVG
 *******************************************************************************************
 *******************************************************************************************/
 SELECT empleado.nombre, empleado.apellido, (COUNT(DISTINCT id_paciente)*100)/(SELECT SUM(COUNT(DISTINCT id_paciente)) FROM evaluacion
@@ -129,6 +133,10 @@ ORDER BY pacientes_atendidos DESC;
 10. Mostrar el porcentaje del título de empleado más común de la siguiente
 manera: nombre del título, porcentaje de empleados que tienen ese
 título. Debe ordenar los resultados en base al porcentaje de mayor a menor.
+UTILIZAR AVG
+UTILIZAR AVG
+UTILIZAR AVG
+UTILIZAR AVG
 *******************************************************************************************
 *******************************************************************************************/
 SELECT titulo.nombre, (COUNT(empleado.id_empleado)*100/(SELECT SUM(COUNT(empleado.id_empleado)) FROM empleado
@@ -143,6 +151,10 @@ ORDER BY porcentaje_empleados DESC;
 apellido de los pacientes que más tratamientos se han aplicado y los que menos. 
 (Todo en una sola consulta). Nota: debe tomar como cantidad
 mínima 1 tratamiento.
+REVISAR
+REVISAR
+REVISAR
+REVISAR
 *******************************************************************************************
 *******************************************************************************************/
 SELECT EXTRACT(YEAR FROM fecha_evaluacion) AS anio, EXTRACT(MONTH FROM fecha_evaluacion) AS mes, paciente.nombre, paciente.apellido 
