@@ -114,29 +114,26 @@ ORDER BY COUNT(evaluacion.id_evaluacion) ASC;
 *******************************************************************************************
 9. Mostrar el porcentaje de pacientes que ha atendido cada empleado a partir
 del año 2017 y mostrarlos de mayor a menor en base al porcentaje calculado.
-REVISAR - UTILIZAR AVG
-REVISAR - UTILIZAR AVG
-REVISAR - UTILIZAR AVG
-REVISAR - UTILIZAR AVG
 *******************************************************************************************
 *******************************************************************************************/
-SELECT empleado.nombre, empleado.apellido, (COUNT(DISTINCT id_paciente)*100)/(SELECT SUM(COUNT(DISTINCT id_paciente)) FROM evaluacion
-INNER JOIN empleado ON empleado.id_empleado = evaluacion.id_empleado
-WHERE evaluacion.fecha_evaluacion >= '01/01/2017' AND evaluacion.fecha_evaluacion <= '31/12/2017'
-GROUP BY empleado.nombre, empleado.apellido) AS pacientes_atendidos FROM evaluacion
-INNER JOIN empleado ON empleado.id_empleado = evaluacion.id_empleado
-WHERE evaluacion.fecha_evaluacion >= '01/01/2017' AND evaluacion.fecha_evaluacion <= '31/12/2017'
-GROUP BY empleado.nombre, empleado.apellido
-ORDER BY pacientes_atendidos DESC;
+SELECT nombre, apellido, ROUND(porcentaje,4) AS porcentaje FROM (
+    SELECT 
+        empleado.nombre, 
+        empleado.apellido, 
+        (COUNT(DISTINCT id_paciente)*100/(SELECT COUNT(empleado.id_empleado) FROM empleado
+        INNER JOIN evaluacion ON evaluacion.id_empleado = empleado.id_empleado
+        WHERE evaluacion.fecha_evaluacion >= '01/01/2017')) AS porcentaje 
+    FROM empleado
+    INNER JOIN evaluacion ON evaluacion.id_empleado = empleado.id_empleado
+    WHERE evaluacion.fecha_evaluacion >= '01/01/2017' AND evaluacion.id_paciente IS NOT NULL
+    GROUP BY empleado.nombre, empleado.apellido
+)
+ORDER BY porcentaje DESC;
 /******************************************************************************************
 *******************************************************************************************
 10. Mostrar el porcentaje del título de empleado más común de la siguiente
 manera: nombre del título, porcentaje de empleados que tienen ese
 título. Debe ordenar los resultados en base al porcentaje de mayor a menor.
-UTILIZAR AVG
-UTILIZAR AVG
-UTILIZAR AVG
-UTILIZAR AVG
 *******************************************************************************************
 *******************************************************************************************/
 SELECT titulo.nombre, (COUNT(empleado.id_empleado)*100/(SELECT SUM(COUNT(empleado.id_empleado)) FROM empleado
@@ -157,7 +154,29 @@ REVISAR
 REVISAR
 *******************************************************************************************
 *******************************************************************************************/
-SELECT EXTRACT(YEAR FROM fecha_evaluacion) AS anio, EXTRACT(MONTH FROM fecha_evaluacion) AS mes, paciente.nombre, paciente.apellido 
+SELECT * FROM (SELECT 
+    EXTRACT(YEAR FROM fecha_evaluacion) AS anio, 
+    EXTRACT(MONTH FROM fecha_evaluacion) AS mes, 
+    paciente.nombre, 
+    paciente.apellido, 
+    COUNT(DISTINCT fecha_tratamiento) AS numero_tratamiento
 FROM detalle_evaluacion
 INNER JOIN evaluacion ON evaluacion.id_evaluacion = detalle_evaluacion.id_evaluacion
-INNER JOIN paciente ON paciente.id_paciente = evaluacion.id_paciente;
+INNER JOIN paciente ON paciente.id_paciente = evaluacion.id_paciente
+GROUP BY paciente.nombre, paciente.apellido, fecha_evaluacion
+HAVING COUNT(DISTINCT fecha_tratamiento) >= 1
+ORDER BY numero_tratamiento DESC
+FETCH FIRST 6 ROWS ONLY)
+UNION ALL
+SELECT * FROM (SELECT 
+    EXTRACT(YEAR FROM fecha_evaluacion) AS anio, 
+    EXTRACT(MONTH FROM fecha_evaluacion) AS mes, 
+    paciente.nombre, 
+    paciente.apellido, 
+    COUNT(DISTINCT fecha_tratamiento) AS numero_tratamiento
+FROM detalle_evaluacion
+INNER JOIN evaluacion ON evaluacion.id_evaluacion = detalle_evaluacion.id_evaluacion
+INNER JOIN paciente ON paciente.id_paciente = evaluacion.id_paciente
+GROUP BY paciente.nombre, paciente.apellido, fecha_evaluacion
+HAVING COUNT(DISTINCT fecha_tratamiento) >= 1
+ORDER BY numero_tratamiento, nombre, apellido ASC);
