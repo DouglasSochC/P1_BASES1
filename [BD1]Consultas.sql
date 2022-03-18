@@ -148,10 +148,6 @@ ORDER BY porcentaje_empleados DESC;
 apellido de los pacientes que más tratamientos se han aplicado y los que menos. 
 (Todo en una sola consulta). Nota: debe tomar como cantidad
 mínima 1 tratamiento.
-REVISAR
-REVISAR
-REVISAR
-REVISAR
 *******************************************************************************************
 *******************************************************************************************/
 SELECT * FROM (SELECT 
